@@ -1,10 +1,12 @@
 import React from "react";
+import { parseISO, format } from "date-fns";
 
 export async function getServerSideProps() {
   try {
-    const res = await fetch("/api/events");
-    const events = await res.json();
-    console.log("Fetched events:", events); // Add this line to log the fetched events
+    const res = await fetch("http://127.0.0.1:1337/api/events");
+    const response = await res.json();
+    const events = response.data.map((event) => event.attributes);
+    console.log("Fetched events:", events);
     return { props: { events } };
   } catch (error) {
     console.error("Error fetching events:", error);
@@ -17,14 +19,21 @@ export default function Events({ events }) {
     <div>
       <h1>Upcoming Events</h1>
       <ul>
-        {events.map((event) => (
-          <li key={event.id}>
-            <h2>{event.title}</h2>
-            <p>{new Date(event.date).toLocaleDateString()}</p>
-            <p>{event.location}</p>
-            <div dangerouslySetInnerHTML={{ __html: event.description }} />
-          </li>
-        ))}
+        {events.map((event) => {
+          const eventDate = event.Date ? parseISO(event.Date) : null;
+          const formattedDate = eventDate
+            ? format(eventDate, "PPpp")
+            : "Date not available";
+
+          return (
+            <li key={event.id}>
+              <h2>{event.Title}</h2>
+              <p>{formattedDate}</p>
+              <p>{event.Location}</p>
+              <div dangerouslySetInnerHTML={{ __html: event.Description }} />
+            </li>
+          );
+        })}
       </ul>
     </div>
   );
